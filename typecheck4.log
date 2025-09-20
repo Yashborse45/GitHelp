@@ -1,0 +1,19 @@
+.next/types/validator.ts(117,31): error TS2344: Type 'typeof import("C:/Users/Yash/OneDrive/Desktop/githelp/src/app/api/trpc/[trpc]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/trpc/[trpc]">'.
+  Types of property 'GET' are incompatible.
+    Type '(req: NextRequest) => Promise<Response>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ trpc: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters 'req' and 'request' are incompatible.
+        Type 'NextRequest' is missing the following properties from type 'NextRequest': geo, ip, [INTERNALS]
+src/app/_components/post.tsx(8,28): error TS2339: Property 'post' does not exist on type 'CreateTRPCReactBase<BuiltRouter<{ ctx: { headers: Headers; db: PrismaClient<{ log: ("query" | "warn" | "error")[]; }, "query" | "warn" | "error", DefaultArgs>; auth: SessionAuthWithRedirect<never>; }; meta: object; errorShape: { ...; }; transformer: true; }, DecorateCreateRouterOptions<...>>, unknown> & DecorateRout...'.
+src/app/_components/post.tsx(12,26): error TS2339: Property 'post' does not exist on type 'CreateTRPCReactBase<BuiltRouter<{ ctx: { headers: Headers; db: PrismaClient<{ log: ("query" | "warn" | "error")[]; }, "query" | "warn" | "error", DefaultArgs>; auth: SessionAuthWithRedirect<never>; }; meta: object; errorShape: { ...; }; transformer: true; }, DecorateCreateRouterOptions<...>>, unknown> & DecorateRout...'.
+src/app/_components/post.tsx(14,19): error TS2339: Property 'post' does not exist on type 'TRPCContextPropsBase<BuiltRouter<{ ctx: { headers: Headers; db: PrismaClient<{ log: ("query" | "warn" | "error")[]; }, "query" | "warn" | "error", DefaultArgs>; auth: SessionAuthWithRedirect<never>; }; meta: object; errorShape: { ...; }; transformer: true; }, DecorateCreateRouterOptions<...>>, unknown> & { ...; } & ...'.
+src/app/api/auth/[...nextauth]/route.ts(3,16): error TS2339: Property 'GET' does not exist on type 'AuthFn<never>'.
+src/app/api/auth/[...nextauth]/route.ts(3,21): error TS2339: Property 'POST' does not exist on type 'AuthFn<never>'.
+src/components/ui/chart.tsx(109,3): error TS2339: Property 'payload' does not exist on type 'Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; includeHidden?: boolean | undefined; ... 17 more ...; axisId?: AxisId | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }'.
+src/components/ui/chart.tsx(114,3): error TS2339: Property 'label' does not exist on type 'Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; includeHidden?: boolean | undefined; ... 17 more ...; axisId?: AxisId | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }'.
+src/components/ui/chart.tsx(182,23): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/chart.tsx(182,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ui/chart.tsx(260,39): error TS2344: Type '"payload" | "verticalAlign"' does not satisfy the constraint '"string" | "id" | "name" | "result" | "path" | "type" | "media" | "spacing" | "order" | "height" | "width" | "transformOrigin" | "rotate" | "scale" | "cursor" | "fill" | "stroke" | ... 426 more ... | "onBBoxUpdate"'.
+  Type '"payload"' is not assignable to type '"string" | "id" | "name" | "result" | "path" | "type" | "media" | "spacing" | "order" | "height" | "width" | "transformOrigin" | "rotate" | "scale" | "cursor" | "fill" | "stroke" | ... 426 more ... | "onBBoxUpdate"'.
+src/components/ui/chart.tsx(266,17): error TS2339: Property 'length' does not exist on type '{}'.
+src/components/ui/chart.tsx(278,16): error TS2339: Property 'map' does not exist on type '{}'.
+src/components/ui/chart.tsx(278,21): error TS7006: Parameter 'item' implicitly has an 'any' type.

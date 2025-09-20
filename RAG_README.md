@@ -2,7 +2,7 @@ GitHelp RAG / Ingestion Developer Notes
 
 Overview
 - Backend: Next.js (T3 stack), Prisma (Supabase), tRPC
-- RAG: OpenAI embeddings + LLM (placeholder), Pinecone vector DB
+- RAG: Gemini / Vertex AI embeddings + LLM (placeholder), Pinecone vector DB
 - GitHub ingestion: Octokit
 
 Files added
@@ -18,7 +18,8 @@ Files added
 Required env vars
 - DATABASE_URL (Postgres / Supabase)
 - GITHUB_TOKEN (optional, or pass per project)
-- OPENAI_API_KEY
+ - GEMINI_API_KEY (Vertex AI / Gemini API key or GCP access token)
+ - GCP_PROJECT (optional) - GCP project id used by the Vertex AI endpoints; if not set, adjust code to point to your project
 - PINECONE_API_KEY
 - PINECONE_ENV
 - PINECONE_INDEX
@@ -32,5 +33,5 @@ Quick local steps
    npm run dev
 
 Notes
-- The RAG and QA code uses the OpenAI and Pinecone SDKs — ensure they're installed and env vars set. The code is intended as a starting point and may need batching/robustness improvements for large repos.
+- The RAG and QA code uses Gemini / Vertex AI (via REST) and the Pinecone SDK — ensure your GEMINI_API_KEY and Pinecone env vars are set. The code is intended as a starting point and may need batching/robustness improvements for large repos.
 - When deploying to Vercel, set env vars in the project settings and ensure your Supabase database is accessible.
