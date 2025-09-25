@@ -1,5 +1,4 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { type NextRequest } from "next/server";
 
 import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
@@ -9,23 +8,25 @@ import { createTRPCContext } from "@/server/api/trpc";
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
  * handling a HTTP request (e.g. when you make requests from Client Components).
  */
-const createContext = async (req: NextRequest) => {
+const createContext = async (req: Request) => {
   return createTRPCContext({
     headers: req.headers,
   });
 };
 
 // Next.js route handlers receive (request, context) where context.params is a *promise* in the type layer.
-// Our handler only needs the request. We adapt the signature to satisfy RouteHandlerConfig.
-export async function GET(request: NextRequest) {
+// We don't need route params but include the argument to satisfy the RouteHandlerConfig.
+export async function GET(request: Request, context: { params: Promise<{ trpc: string }> }) {
+  await context.params;
   return handleRequest(request);
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request, context: { params: Promise<{ trpc: string }> }) {
+  await context.params;
   return handleRequest(request);
 }
 
-async function handleRequest(req: NextRequest): Promise<Response> {
+async function handleRequest(req: Request): Promise<Response> {
   return fetchRequestHandler({
     endpoint: "/api/trpc",
     req,

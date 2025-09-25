@@ -4,10 +4,11 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { DashboardContent } from "@/components/dashboard-content"
 import { Sidebar } from "@/components/sidebar"
+import { api } from "@/trpc/react"
 
 interface DashboardLayoutProps {
   children?: React.ReactNode
@@ -15,10 +16,31 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [activeView, setActiveView] = useState("dashboard")
-  const [selectedProject, setSelectedProject] = useState<number | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [userTouchedSelection, setUserTouchedSelection] = useState(false)
   const { isLoaded, isSignedIn } = useUser()
   const router = useRouter()
   const { toast } = useToast()
+
+  const {
+    data: projectsData,
+    isLoading: projectsLoading,
+    isFetching: projectsFetching,
+    refetch: refetchProjects,
+  } = api.project.list.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  })
+
+  const projects = useMemo(() => projectsData ?? [], [projectsData])
+  const combinedProjectsLoading = projectsLoading || projectsFetching
+
+  const handleProjectChange = useCallback(
+    (projectId: string | null) => {
+      setUserTouchedSelection(true)
+      setSelectedProjectId(projectId)
+    },
+    [setSelectedProjectId],
+  )
 
   // Client-side guard to avoid any flash of protected content if server redirect is bypassed momentarily.
   useEffect(() => {
@@ -32,6 +54,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       router.replace("/login")
     }
   }, [isLoaded, isSignedIn, router, toast])
+
+  useEffect(() => {
+    if (!projects.length) {
+      setSelectedProjectId(null)
+      return
+    }
+
+    if (!userTouchedSelection && !selectedProjectId) {
+      setSelectedProjectId(projects[0]?.id ?? null)
+      return
+    }
+
+    if (selectedProjectId && !projects.some((project) => project.id === selectedProjectId)) {
+      setSelectedProjectId(projects[0]?.id ?? null)
+    }
+  }, [projects, selectedProjectId, userTouchedSelection])
+
+  const handleProjectCreated = useCallback(
+    async (projectId: string) => {
+      setUserTouchedSelection(true)
+      setSelectedProjectId(projectId)
+      setActiveView("dashboard")
+      await refetchProjects()
+    },
+    [refetchProjects],
+  )
 
   // While auth state resolving OR redirecting, render minimal placeholder (no protected data).
   if (!isLoaded || !isSignedIn) {
@@ -51,12 +99,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
-        selectedProject={selectedProject}
-        onProjectChange={setSelectedProject}
+        selectedProjectId={selectedProjectId}
+        onProjectChange={handleProjectChange}
+        projects={projects}
+        projectsLoading={combinedProjectsLoading}
+        onRefreshProjects={() => void refetchProjects()}
       />
 
       <main className="flex-1 overflow-auto relative z-10 bg-background/80 backdrop-blur-sm">
-        <DashboardContent activeView={activeView} selectedProject={selectedProject} />
+        <DashboardContent
+          activeView={activeView}
+          selectedProjectId={selectedProjectId}
+          projects={projects}
+          projectsLoading={combinedProjectsLoading}
+          onProjectCreated={handleProjectCreated}
+          onChangeView={setActiveView}
+        />
       </main>
     </div>
   )

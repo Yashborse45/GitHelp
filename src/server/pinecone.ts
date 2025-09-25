@@ -1,37 +1,57 @@
-// Importing via require to avoid TypeScript issues with package export types
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { PineconeClient } = require("@pinecone-database/pinecone") as any;
+import { Pinecone, type PineconeRecord } from "@pinecone-database/pinecone";
+
+type ProjectChunkMetadata = {
+    projectId: string;
+    path: string;
+    chunkIndex: number;
+    hash: string;
+    text: string;
+};
 
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_ENV = process.env.PINECONE_ENV;
 const PINECONE_INDEX = process.env.PINECONE_INDEX || "githelp";
 
-if (!PINECONE_API_KEY || !PINECONE_ENV) {
-    // We'll throw at runtime if not configured
+let client: Pinecone | null = null;
+
+function ensureClient(): Pinecone {
+    if (!PINECONE_API_KEY) {
+        throw new Error(
+            "Pinecone is not configured. Please set PINECONE_API_KEY (and optionally PINECONE_ENV / PINECONE_INDEX).",
+        );
+    }
+
+    if (!client) {
+        const config = PINECONE_ENV ? { apiKey: PINECONE_API_KEY, environment: PINECONE_ENV } : { apiKey: PINECONE_API_KEY };
+        client = new Pinecone(config);
+    }
+
+    return client;
 }
 
-const pinecone = new PineconeClient();
-let initialized = false;
-
-export async function initPinecone() {
-    if (initialized) return;
-    await pinecone.init({ apiKey: PINECONE_API_KEY as string, environment: PINECONE_ENV as string });
-    initialized = true;
+function getIndex() {
+    const pinecone = ensureClient();
+    return pinecone.index<ProjectChunkMetadata>(PINECONE_INDEX);
 }
 
-export async function upsertVectors(vectors: { id: string; values: number[]; metadata?: any }[]) {
-    await initPinecone();
-    const index = pinecone.Index(PINECONE_INDEX);
-    const batch = 100;
-    for (let i = 0; i < vectors.length; i += batch) {
-        const chunk = vectors.slice(i, i + batch);
-        await index.upsert({ upsertRequest: { vectors: chunk } as any } as any);
+export async function upsertVectors(vectors: PineconeRecord<ProjectChunkMetadata>[]) {
+    if (!vectors.length) return;
+
+    const index = getIndex();
+    // Pinecone handles chunking internally but we keep small batches to avoid large payloads
+    const batchSize = 100;
+    for (let i = 0; i < vectors.length; i += batchSize) {
+        const batch = vectors.slice(i, i + batchSize);
+        await index.upsert(batch);
     }
 }
 
 export async function queryVectors(vector: number[], topK = 5) {
-    await initPinecone();
-    const index = pinecone.Index(PINECONE_INDEX);
-    const resp: any = await index.query({ queryRequest: { vector, topK, includeMetadata: true } } as any);
-    return resp;
+    const index = getIndex();
+    const response = await index.query({
+        vector,
+        topK,
+        includeMetadata: true,
+    });
+    return response;
 }

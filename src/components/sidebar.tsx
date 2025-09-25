@@ -10,28 +10,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { useClerk, useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-const projects = [
-  { id: 1, name: "commits", initial: "c", active: false },
-  { id: 2, name: "commits test", initial: "c", active: false },
-  { id: 3, name: "test index", initial: "t", active: false },
-  { id: 4, name: "test credits", initial: "t", active: false },
-  { id: 5, name: "sdfsdf", initial: "s", active: false },
-  { id: 6, name: "Test Prod", initial: "T", active: true },
-]
-
 interface SidebarProps {
   activeView: string
   onViewChange: (view: string) => void
-  selectedProject: number | null
-  onProjectChange: (projectId: number | null) => void
+  selectedProjectId: string | null
+  onProjectChange: (projectId: string | null) => void
+  projects: Array<{ id: string; name: string }>
+  projectsLoading?: boolean
+  onRefreshProjects?: () => void
 }
 
-export function Sidebar({ activeView, onViewChange, selectedProject, onProjectChange }: SidebarProps) {
+export function Sidebar({
+  activeView,
+  onViewChange,
+  selectedProjectId,
+  onProjectChange,
+  projects,
+  projectsLoading,
+  onRefreshProjects,
+}: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const { user, isLoaded, isSignedIn } = useUser()
   const { signOut } = useClerk()
@@ -57,8 +60,8 @@ export function Sidebar({ activeView, onViewChange, selectedProject, onProjectCh
     }
   }
 
-  const handleProjectClick = (projectId: number) => {
-    if (selectedProject === projectId) {
+  const handleProjectClick = (projectId: string) => {
+    if (selectedProjectId === projectId) {
       onProjectChange(null)
     } else {
       onProjectChange(projectId)
@@ -139,29 +142,64 @@ export function Sidebar({ activeView, onViewChange, selectedProject, onProjectCh
       {!isCollapsed && (
         <div className="flex-1 px-4">
           <div className="mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Your Projects</h3>
-            <div className="space-y-1">
-              {projects.map((project) => (
-                <button
-                  key={project.id}
-                  onClick={() => handleProjectClick(project.id)}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center space-x-2",
-                    "hover:bg-muted hover:text-foreground",
-                    selectedProject === project.id ? "bg-primary text-primary-foreground" : "text-foreground",
-                  )}
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-medium text-muted-foreground">Your Projects</h3>
+              {onRefreshProjects && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={projectsLoading}
+                  onClick={() => onRefreshProjects?.()}
+                  className="h-7 w-7 text-muted-foreground"
                 >
-                  <div
-                    className={cn(
-                      "w-5 h-5 rounded flex items-center justify-center text-xs font-medium flex-shrink-0",
-                      selectedProject === project.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {project.initial}
-                  </div>
-                  <span className="truncate">{project.name}</span>
-                </button>
-              ))}
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8 8 0 006.582 9H4m16 11v-5h-.581M4.063 14a8 8 0 0013.356 2H20"
+                    />
+                  </svg>
+                  <span className="sr-only">Refresh projects</span>
+                </Button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {projectsLoading ? (
+                Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-8 w-full" />)
+              ) : projects.length ? (
+                projects.map((project) => {
+                  const initial = project.name?.trim()?.[0]?.toUpperCase() ?? "?"
+                  const isSelected = selectedProjectId === project.id
+                  return (
+                    <button
+                      key={project.id}
+                      onClick={() => handleProjectClick(project.id)}
+                      className={cn(
+                        "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center space-x-2",
+                        "hover:bg-muted hover:text-foreground",
+                        isSelected ? "bg-primary text-primary-foreground" : "text-foreground",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "w-5 h-5 rounded flex items-center justify-center text-xs font-medium flex-shrink-0",
+                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {initial}
+                      </div>
+                      <span className="truncate">{project.name}</span>
+                    </button>
+                  )
+                })
+              ) : (
+                <div className="rounded-md border border-dashed border-border/60 bg-muted/20 px-3 py-4 text-xs text-muted-foreground">
+                  <p className="font-medium text-foreground/80">No projects yet</p>
+                  <p className="mt-1">Create a project to start ingesting a repository.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
