@@ -7,39 +7,68 @@ import { Code2, Database, File, FileCode, FileImage, FileText, Settings } from "
 import { useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
-// Simple dark theme style object to avoid import issues
-const darkStyle = {
+// VS Code dark theme style for syntax highlighting with VISIBLE colors
+const darkStyle: { [key: string]: React.CSSProperties } = {
     'code[class*="language-"]': {
-        color: '#ccc',
+        color: '#d4d4d4', // Light gray - VISIBLE
         background: 'none',
         fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
         fontSize: '1em',
-        textAlign: 'left' as const,
-        whiteSpace: 'pre' as const,
+        textAlign: 'left',
+        whiteSpace: 'pre',
         wordSpacing: 'normal',
-        wordBreak: 'normal' as const,
-        wordWrap: 'normal' as const,
+        wordBreak: 'normal',
+        wordWrap: 'normal',
         lineHeight: '1.5',
         tabSize: 4,
-        hyphens: 'none' as const,
+        hyphens: 'none',
     },
     'pre[class*="language-"]': {
-        color: '#ccc',
-        background: '#2d2d2d',
+        color: '#d4d4d4', // Light gray - VISIBLE
+        background: '#1e1e1e',
         fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
         fontSize: '1em',
-        textAlign: 'left' as const,
-        whiteSpace: 'pre' as const,
+        textAlign: 'left',
+        whiteSpace: 'pre',
         wordSpacing: 'normal',
-        wordBreak: 'normal' as const,
-        wordWrap: 'normal' as const,
+        wordBreak: 'normal',
+        wordWrap: 'normal',
         lineHeight: '1.5',
         tabSize: 4,
-        hyphens: 'none' as const,
+        hyphens: 'none',
         padding: '1em',
         margin: '.5em 0',
         overflow: 'auto',
     },
+    'comment': { color: '#6a9955', fontStyle: 'italic' }, // Green
+    'prolog': { color: '#6a9955' },
+    'doctype': { color: '#6a9955' },
+    'cdata': { color: '#6a9955' },
+    'punctuation': { color: '#d4d4d4' }, // Light gray
+    'property': { color: '#9cdcfe' }, // Light blue
+    'tag': { color: '#569cd6' }, // Blue
+    'boolean': { color: '#569cd6' },
+    'number': { color: '#b5cea8' }, // Light green
+    'constant': { color: '#4fc1ff' },
+    'symbol': { color: '#4fc1ff' },
+    'deleted': { color: '#f14c4c' },
+    'selector': { color: '#d7ba7d' },
+    'attr-name': { color: '#9cdcfe' },
+    'string': { color: '#ce9178' }, // Orange
+    'char': { color: '#ce9178' },
+    'builtin': { color: '#4ec9b0' }, // Teal
+    'inserted': { color: '#b5cea8' },
+    'operator': { color: '#d4d4d4' },
+    'entity': { color: '#569cd6' },
+    'url': { color: '#3794ff' },
+    'variable': { color: '#9cdcfe' },
+    'atrule': { color: '#c586c0' },
+    'attr-value': { color: '#ce9178' },
+    'keyword': { color: '#569cd6', fontWeight: 'bold' }, // Blue bold
+    'function': { color: '#dcdcaa' }, // Yellow
+    'class-name': { color: '#4ec9b0' },
+    'regex': { color: '#d16969' },
+    'important': { color: '#569cd6', fontWeight: 'bold' },
 };
 
 interface CodeReferencesProps {
@@ -173,7 +202,7 @@ export default function CodeReferences({ citations }: CodeReferencesProps) {
                                         <span>Code chunk {citation.chunkIndex + 1}</span>
                                     </div>
                                 )}
-                                <div className="border rounded-lg overflow-hidden bg-[#1e1e1e]">
+                                <div className="border rounded-lg overflow-hidden">
                                     <SyntaxHighlighter
                                         language={getLanguageFromPath(citation.path)}
                                         style={darkStyle}
@@ -182,15 +211,16 @@ export default function CodeReferences({ citations }: CodeReferencesProps) {
                                             fontSize: '0.875rem',
                                             lineHeight: '1.6',
                                             padding: '1rem',
-                                            background: 'transparent',
+                                            background: '#1e1e1e',
                                         }}
                                         showLineNumbers={true}
                                         wrapLines={true}
                                         lineNumberStyle={{
-                                            color: '#6b7280',
+                                            color: '#858585',
                                             fontSize: '0.75rem',
                                             paddingRight: '1rem',
                                             userSelect: 'none',
+                                            minWidth: '3em',
                                         }}
                                     >
                                         {citation.excerpt || '// No code content available'}
@@ -279,7 +309,7 @@ export default function CodeReferences({ citations }: CodeReferencesProps) {
                                                 <span>Code chunk {citation.chunkIndex + 1}</span>
                                             </div>
                                         )}
-                                        <div className="border rounded-lg overflow-hidden bg-[#1e1e1e]">
+                                        <div className="border rounded-lg overflow-hidden">
                                             <SyntaxHighlighter
                                                 language={getLanguageFromPath(citation.path)}
                                                 style={darkStyle}
@@ -288,15 +318,16 @@ export default function CodeReferences({ citations }: CodeReferencesProps) {
                                                     fontSize: '0.875rem',
                                                     lineHeight: '1.6',
                                                     padding: '1rem',
-                                                    background: 'transparent',
+                                                    background: '#1e1e1e',
                                                 }}
                                                 showLineNumbers={true}
                                                 wrapLines={true}
                                                 lineNumberStyle={{
-                                                    color: '#6b7280',
+                                                    color: '#858585',
                                                     fontSize: '0.75rem',
                                                     paddingRight: '1rem',
                                                     userSelect: 'none',
+                                                    minWidth: '3em',
                                                 }}
                                             >
                                                 {citation.excerpt || '// No code content available'}
