@@ -3,7 +3,7 @@
 > AI-powered code analysis and Q&A platform that helps developers understand their codebases faster than ever before.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-githelp.onrender.com-blue?style=for-the-badge)](https://githelp.onrender.com/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/xXemran05khanXx/GitHelp)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/Yashborse45/GitHelp)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
@@ -71,7 +71,7 @@ Before running this project, make sure you have:
 
 ### 1. **Clone the Repository**
 ```bash
-git clone https://github.com/xXemran05khanXx/GitHelp.git
+git clone https://github.com/Yashborse45/GitHelp.git
 cd GitHelp
 ```
 
@@ -311,7 +311,7 @@ Strict TypeScript setup with Next.js 15 support:
 
 ## 📞 Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/xXemran05khanXx/GitHelp/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/Yashborse45/GitHelp/issues)
 - **Documentation**: Check this README and inline code comments
 - **Community**: Join discussions in GitHub Discussions
 
@@ -335,6 +335,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ by the GitHelp Team**
 
-[Live Demo](https://githelp.onrender.com/) • [GitHub](https://github.com/xXemran05khanXx/GitHelp) • [Report Bug](https://github.com/xXemran05khanXx/GitHelp/issues)
+[Live Demo](https://githelp.onrender.com/) • [GitHub](https://github.com/Yashborse45/GitHelp) • [Report Bug](https://github.com/Yashborse45/GitHelp/issues)
 
 </div>
