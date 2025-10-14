@@ -9,7 +9,7 @@ import { useFormDraft } from "@/hooks/use-cached-queries";
 import { type Citation } from "@/lib/ask-api";
 import { api } from "@/trpc/react";
 import { Bot, Cloud, Loader2, MessageCircle, Send, User } from "lucide-react";
-import { useEffect, useState, memo, useCallback } from "react";
+import { useEffect, useState, memo, useCallback, useRef } from "react";
 import CodeReferences from "./code-references";
 
 interface QAComponentProps {
@@ -79,6 +79,7 @@ export default function QAComponent({ projectId }: QAComponentProps) {
     const [isTyping, setIsTyping] = useState(false);
     const [currentAnswer, setCurrentAnswer] = useState("");
     const [pendingAnswer, setPendingAnswer] = useState<QAItem | null>(null);
+    const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Use tRPC query for Q&A history (no caching issues)
     const { data: qaHistoryData = [], isLoading: isLoadingHistory, error: historyError, refetch: refetchHistory } = api.qa.list.useQuery(
@@ -141,34 +142,47 @@ export default function QAComponent({ projectId }: QAComponentProps) {
         setPendingAnswer(null);
     }, [projectId]);
 
-    // Typing effect for answers - fast and smooth
+    // Improved, ultra-fast typing effect for answers
     const typeAnswer = useCallback((answer: string, qaItem: QAItem) => {
         setIsTyping(true);
         setCurrentAnswer("");
         setPendingAnswer(qaItem);
 
         let index = 0;
-        const typeSpeed = 3; // Very fast typing speed
-        const charsPerFrame = answer.length > 500 ? 3 : 1; // Type multiple chars for long responses
+        // Ultra-fast: show more chars per frame, barely any delay
+        const typeSpeed = 0; // ms between frames (as fast as possible)
+        const minCharsPerFrame = 5;
+        const charsPerFrame = answer.length > 400 ? Math.max(Math.floor(answer.length / 30), minCharsPerFrame) : minCharsPerFrame;
 
-        const timer = setInterval(() => {
+        // Clean up any previous timer
+        if (typingTimerRef.current) {
+            clearInterval(typingTimerRef.current);
+        }
+
+        typingTimerRef.current = setInterval(() => {
             if (index < answer.length) {
                 const nextChars = answer.slice(index, index + charsPerFrame);
                 setCurrentAnswer(prev => prev + nextChars);
                 index += charsPerFrame;
             } else {
-                clearInterval(timer);
-                // Quick transition to complete answer
+                if (typingTimerRef.current) clearInterval(typingTimerRef.current);
                 setTimeout(() => {
                     setIsTyping(false);
                     setPendingAnswer(null);
                     setCurrentAnswer("");
-                    // Refetch history to show the new answer
                     refetchHistory();
-                }, 100);
+                }, 50); // Almost instant transition
             }
         }, typeSpeed);
+
     }, [refetchHistory]);
+
+    useEffect(() => {
+        // Clean up timer on unmount or when answer is completed
+        return () => {
+            if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+        };
+    }, []);
 
     const handleAskQuestion = useCallback(async () => {
         if (!question.trim()) return;
@@ -179,6 +193,7 @@ export default function QAComponent({ projectId }: QAComponentProps) {
         setIsTyping(false);
         setCurrentAnswer("");
         setPendingAnswer(null);
+        if (typingTimerRef.current) clearInterval(typingTimerRef.current);
 
         try {
             // Use the tRPC mutation
@@ -210,7 +225,7 @@ export default function QAComponent({ projectId }: QAComponentProps) {
             setQuestion("");
             saveDraft("");
 
-            // Start typing animation
+            // Start ultra-fast typing animation
             typeAnswer(savedAnswer.answer, qaItem);
         } catch (error) {
             console.error('Error asking question:', error);
