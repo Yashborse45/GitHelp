@@ -9,7 +9,7 @@ import { useFormDraft } from "@/hooks/use-cached-queries";
 import { type Citation } from "@/lib/ask-api";
 import { api } from "@/trpc/react";
 import { Bot, Cloud, Loader2, MessageCircle, Send, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import CodeReferences from "./code-references";
 
 interface QAComponentProps {
@@ -23,6 +23,55 @@ interface QAItem {
     citations: Citation[];
     createdAt: string;
 }
+
+// Memoized QA History Item to prevent unnecessary re-renders during typing
+const QAHistoryItem = memo(({ qa, index }: { qa: QAItem; index: number }) => (
+    <Card
+        key={qa.id}
+        className="border-l-4 border-l-gray-300 animate-in slide-in-from-bottom-5 duration-300 w-full overflow-hidden"
+        style={{ animationDelay: `${index * 100}ms` }}
+    >
+        <CardContent className="pt-6">
+            <div className="space-y-4">
+                {/* Question */}
+                <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 mt-1 text-blue-600" />
+                    <div className="flex-1">
+                        <h4 className="font-medium text-blue-700 dark:text-blue-400 mb-2">You asked:</h4>
+                        <p className="text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 break-words overflow-wrap-anywhere">{qa.question}</p>
+                    </div>
+                </div>
+
+                {/* Answer */}
+                <div className="flex items-start gap-3">
+                    <Bot className="h-5 w-5 mt-1 text-green-600" />
+                    <div className="flex-1">
+                        <h4 className="font-medium text-green-700 dark:text-green-400 mb-2">AI Assistant:</h4>
+                        <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-800 overflow-hidden">
+                            <MarkdownRenderer
+                                content={preprocessGeminiText(qa.answer)}
+                                variant="compact"
+                                className="break-words"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Code References */}
+                {qa.citations && qa.citations.length > 0 && (
+                    <CodeReferences citations={qa.citations} />
+                )}
+
+                {/* Timestamp */}
+                <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2">
+                    Asked on {new Date(qa.createdAt).toLocaleString()}
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+));
+
+QAHistoryItem.displayName = 'QAHistoryItem';
 
 export default function QAComponent({ projectId }: QAComponentProps) {
     const [question, setQuestion] = useState("");
@@ -93,7 +142,7 @@ export default function QAComponent({ projectId }: QAComponentProps) {
     }, [projectId]);
 
     // Typing effect for answers - fast and smooth
-    const typeAnswer = (answer: string, qaItem: QAItem) => {
+    const typeAnswer = useCallback((answer: string, qaItem: QAItem) => {
         setIsTyping(true);
         setCurrentAnswer("");
         setPendingAnswer(qaItem);
@@ -119,9 +168,9 @@ export default function QAComponent({ projectId }: QAComponentProps) {
                 }, 100);
             }
         }, typeSpeed);
-    };
+    }, [refetchHistory]);
 
-    const handleAskQuestion = async () => {
+    const handleAskQuestion = useCallback(async () => {
         if (!question.trim()) return;
 
         setError(null);
@@ -167,13 +216,14 @@ export default function QAComponent({ projectId }: QAComponentProps) {
             console.error('Error asking question:', error);
             setError('Failed to ask question. Please try again.');
         }
-    };
+    }, [projectId, question, askQuestionMutation, saveDraft, typeAnswer]);
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
         if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
             handleAskQuestion();
         }
-    };
+    }, [handleAskQuestion]);
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 overflow-hidden">
@@ -197,6 +247,9 @@ export default function QAComponent({ projectId }: QAComponentProps) {
                         onKeyDown={handleKeyPress}
                         rows={3}
                         className="resize-none"
+                        disabled={askQuestionMutation.isPending || isTyping}
+                        autoComplete="off"
+                        spellCheck="false"
                     />
                     <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">
@@ -309,49 +362,7 @@ export default function QAComponent({ projectId }: QAComponentProps) {
                     </Card>
                 ) : (
                     qaHistory.map((qa: QAItem, index: number) => (
-                        <Card
-                            key={qa.id}
-                            className="border-l-4 border-l-gray-300 animate-in slide-in-from-bottom-5 duration-300 w-full overflow-hidden"
-                            style={{ animationDelay: `${index * 100}ms` }}
-                        >
-                            <CardContent className="pt-6">
-                                <div className="space-y-4">
-                                    {/* Question */}
-                                    <div className="flex items-start gap-3">
-                                        <User className="h-5 w-5 mt-1 text-blue-600" />
-                                        <div className="flex-1">
-                                            <h4 className="font-medium text-blue-700 dark:text-blue-400 mb-2">You asked:</h4>
-                                            <p className="text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 break-words overflow-wrap-anywhere">{qa.question}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Answer */}
-                                    <div className="flex items-start gap-3">
-                                        <Bot className="h-5 w-5 mt-1 text-green-600" />
-                                        <div className="flex-1">
-                                            <h4 className="font-medium text-green-700 dark:text-green-400 mb-2">AI Assistant:</h4>
-                                            <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-800 overflow-hidden">
-                                                <MarkdownRenderer
-                                                    content={preprocessGeminiText(qa.answer)}
-                                                    variant="compact"
-                                                    className="break-words"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Code References */}
-                                    {qa.citations && qa.citations.length > 0 && (
-                                        <CodeReferences citations={qa.citations} />
-                                    )}
-
-                                    {/* Timestamp */}
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2">
-                                        Asked on {new Date(qa.createdAt).toLocaleString()}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <QAHistoryItem key={qa.id} qa={qa} index={index} />
                     ))
                 )}
             </div>
